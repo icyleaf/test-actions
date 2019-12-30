@@ -1,17 +1,26 @@
-name: Publish Docker
-on: [push]
+name: Publish Nightly Docker Image
+on:
+  push:
+    branches:
+      - develop
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
+      env:
+        VCS_REF: ${{ github.sha }}
+        BUILD_DATE: ${{ steps.date.outputs.date }}
       with:
-        name: icyleafcn/hugo:nightly
+        name: icyleafcn/hugo
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        snapshot: true
+        buildargs: BUILD_DATE,VCS_REF,VERSION
     - name: Docker Hub Description
       uses: peter-evans/dockerhub-description@v2.1.0
       env:
